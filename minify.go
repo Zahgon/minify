@@ -2,23 +2,15 @@
 package minify
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"log"
-	"mime"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
-	"path"
 	"regexp"
-	"strings"
 	"sync"
-
-	"github.com/tdewolff/parse/v2"
-	"github.com/tdewolff/parse/v2/buffer"
 )
 
 // Warning is used to report usage warnings such as using a deprecated feature
@@ -37,11 +29,13 @@ type MinifierFunc func(*M, io.Writer, io.Reader, map[string]string) error
 
 // Minify calls f(m, w, r, params)
 func (f MinifierFunc) Minify(m *M, w io.Writer, r io.Reader, params map[string]string) error {
-	return f(m, w, r, params)
+	_ = "STUB: not implemented"
+	return nil
+
+	// Minifier is the interface for minifiers.
+	// The *M parameter is used for minifying embedded resources, such as JS within HTML.
 }
 
-// Minifier is the interface for minifiers.
-// The *M parameter is used for minifying embedded resources, such as JS within HTML.
 type Minifier interface {
 	Minify(*M, io.Writer, io.Reader, map[string]string) error
 }
@@ -60,60 +54,11 @@ type cmdMinifier struct {
 var cmdArgExtension = regexp.MustCompile(`^\.[0-9a-zA-Z]+`)
 
 func (c *cmdMinifier) Minify(_ *M, w io.Writer, r io.Reader, _ map[string]string) error {
-	cmd := &exec.Cmd{}
-	*cmd = *c.cmd // concurrency safety
-
-	var in, out *os.File
-	for i, arg := range cmd.Args {
-		if j := strings.Index(arg, "$in"); j != -1 {
-			var err error
-			ext := cmdArgExtension.FindString(arg[j+3:])
-			if in != nil {
-				return fmt.Errorf("more than one input arguments")
-			} else if in, err = os.CreateTemp("", "minify-in-*"+ext); err != nil {
-				return err
-			}
-			defer func() {
-				os.Remove(in.Name())
-			}()
-			cmd.Args[i] = arg[:j] + in.Name() + arg[j+3+len(ext):]
-		} else if j := strings.Index(arg, "$out"); j != -1 {
-			var err error
-			ext := cmdArgExtension.FindString(arg[j+4:])
-			if out != nil {
-				return fmt.Errorf("more than one output arguments")
-			} else if out, err = os.CreateTemp("", "minify-out-*"+ext); err != nil {
-				return err
-			}
-			defer func() {
-				os.Remove(out.Name())
-			}()
-			cmd.Args[i] = arg[:j] + out.Name() + arg[j+4+len(ext):]
-		}
-	}
-
-	if in == nil {
-		cmd.Stdin = r
-	} else if _, err := io.Copy(in, r); err != nil {
-		return err
-	}
-	if out == nil {
-		cmd.Stdout = w
-	} else {
-		defer io.Copy(w, out)
-	}
-	stderr := &bytes.Buffer{}
-	cmd.Stderr = stderr
-
-	err := cmd.Run()
-	if _, ok := err.(*exec.ExitError); ok {
-		if stderr.Len() != 0 {
-			err = fmt.Errorf("%s", stderr.String())
-		}
-		err = fmt.Errorf("command %s failed: %w", cmd.Path, err)
-	}
-	return err
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// concurrency safety
 
 ////////////////////////////////////////////////////////////////
 
@@ -127,151 +72,78 @@ type M struct {
 }
 
 // New returns a new M.
-func New() *M {
-	return &M{
-		sync.RWMutex{},
-		map[string]Minifier{},
-		[]patternMinifier{},
-		nil,
-	}
-}
+func New() *M { _ = "STUB: not implemented"; return nil }
 
 // Add adds a minifier to the mimetype => function map (unsafe for concurrent use).
-func (m *M) Add(mimetype string, minifier Minifier) {
-	m.mutex.Lock()
-	m.literal[mimetype] = minifier
-	m.mutex.Unlock()
-}
+func (m *M) Add(mimetype string, minifier Minifier) { _ = "STUB: not implemented"; return }
 
 // AddFunc adds a minify function to the mimetype => function map (unsafe for concurrent use).
-func (m *M) AddFunc(mimetype string, minifier MinifierFunc) {
-	m.mutex.Lock()
-	m.literal[mimetype] = minifier
-	m.mutex.Unlock()
-}
+func (m *M) AddFunc(mimetype string, minifier MinifierFunc) { _ = "STUB: not implemented"; return }
 
 // AddRegexp adds a minifier to the mimetype => function map (unsafe for concurrent use).
-func (m *M) AddRegexp(pattern *regexp.Regexp, minifier Minifier) {
-	m.mutex.Lock()
-	for i := range m.pattern {
-		if m.pattern[i].pattern.String() == pattern.String() {
-			m.pattern[i] = patternMinifier{pattern, minifier}
-			m.mutex.Unlock()
-			return
-		}
-	}
-	m.pattern = append(m.pattern, patternMinifier{pattern, minifier})
-	m.mutex.Unlock()
-}
+func (m *M) AddRegexp(pattern *regexp.Regexp, minifier Minifier) { _ = "STUB: not implemented"; return }
 
 // AddFuncRegexp adds a minify function to the mimetype => function map (unsafe for concurrent use).
 func (m *M) AddFuncRegexp(pattern *regexp.Regexp, minifier MinifierFunc) {
-	m.mutex.Lock()
-	for i := range m.pattern {
-		if m.pattern[i].pattern.String() == pattern.String() {
-			m.pattern[i] = patternMinifier{pattern, minifier}
-			m.mutex.Unlock()
-			return
-		}
-	}
-	m.pattern = append(m.pattern, patternMinifier{pattern, minifier})
-	m.mutex.Unlock()
+	_ = "STUB: not implemented"
+	return
 }
 
 // AddCmd adds a minify function to the mimetype => function map (unsafe for concurrent use) that executes a command to process the minification.
 // It allows the use of external tools like ClosureCompiler, UglifyCSS, etc. for a specific mimetype.
-func (m *M) AddCmd(mimetype string, cmd *exec.Cmd) {
-	m.mutex.Lock()
-	m.literal[mimetype] = &cmdMinifier{cmd}
-	m.mutex.Unlock()
-}
+func (m *M) AddCmd(mimetype string, cmd *exec.Cmd) { _ = "STUB: not implemented"; return }
 
 // AddCmdRegexp adds a minify function to the mimetype => function map (unsafe for concurrent use) that executes a command to process the minification.
 // It allows the use of external tools like ClosureCompiler, UglifyCSS, etc. for a specific mimetype regular expression.
-func (m *M) AddCmdRegexp(pattern *regexp.Regexp, cmd *exec.Cmd) {
-	m.mutex.Lock()
-	m.pattern = append(m.pattern, patternMinifier{pattern, &cmdMinifier{cmd}})
-	m.mutex.Unlock()
-}
+func (m *M) AddCmdRegexp(pattern *regexp.Regexp, cmd *exec.Cmd) { _ = "STUB: not implemented"; return }
 
 // Match returns the pattern and minifier that gets matched with the mediatype.
 // It returns nil when no matching minifier exists.
 // It has the same matching algorithm as Minify.
 func (m *M) Match(mediatype string) (string, map[string]string, MinifierFunc) {
-	m.mutex.RLock()
-	defer m.mutex.RUnlock()
-
-	mimetype, params := parse.Mediatype([]byte(mediatype))
-	if minifier, ok := m.literal[string(mimetype)]; ok { // string conversion is optimized away
-		return string(mimetype), params, minifier.Minify
-	}
-
-	for _, minifier := range m.pattern {
-		if minifier.pattern.Match(mimetype) {
-			return minifier.pattern.String(), params, minifier.Minify
-		}
-	}
-	return string(mimetype), params, nil
+	_ = "STUB: not implemented"
+	return "", nil, *new(MinifierFunc)
 }
+
+// string conversion is optimized away
 
 // Minify minifies the content of a Reader and writes it to a Writer (safe for concurrent use).
 // An error is returned when no such mimetype exists (ErrNotExist) or when an error occurred in the minifier function.
 // Mediatype may take the form of 'text/plain', 'text/*', '*/*' or 'text/plain; charset=UTF-8; version=2.0'.
 func (m *M) Minify(mediatype string, w io.Writer, r io.Reader) error {
-	mimetype, params := parse.Mediatype([]byte(mediatype))
-	return m.MinifyMimetype(mimetype, w, r, params)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // MinifyMimetype minifies the content of a Reader and writes it to a Writer (safe for concurrent use).
 // It is a lower level version of Minify and requires the mediatype to be split up into mimetype and parameters.
 // It is mostly used internally by minifiers because it is faster (no need to convert a byte-slice to string and vice versa).
 func (m *M) MinifyMimetype(mimetype []byte, w io.Writer, r io.Reader, params map[string]string) error {
-	m.mutex.RLock()
-	defer m.mutex.RUnlock()
-
-	if minifier, ok := m.literal[string(mimetype)]; ok { // string conversion is optimized away
-		return minifier.Minify(m, w, r, params)
-	}
-	for _, minifier := range m.pattern {
-		if minifier.pattern.Match(mimetype) {
-			return minifier.Minify(m, w, r, params)
-		}
-	}
-	return ErrNotExist
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// string conversion is optimized away
 
 // Bytes minifies an array of bytes (safe for concurrent use). When an error occurs it return the original array and the error.
 // It returns an error when no such mimetype exists (ErrNotExist) or any error occurred in the minifier function.
 func (m *M) Bytes(mediatype string, v []byte) ([]byte, error) {
-	out := buffer.NewWriter(make([]byte, 0, len(v)))
-	if err := m.Minify(mediatype, out, buffer.NewReader(v)); err != nil {
-		return v, err
-	}
-	return out.Bytes(), nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // String minifies a string (safe for concurrent use). When an error occurs it return the original string and the error.
 // It returns an error when no such mimetype exists (ErrNotExist) or any error occurred in the minifier function.
 func (m *M) String(mediatype string, v string) (string, error) {
-	out := buffer.NewWriter(make([]byte, 0, len(v)))
-	if err := m.Minify(mediatype, out, buffer.NewReader([]byte(v))); err != nil {
-		return v, err
-	}
-	return string(out.Bytes()), nil
+	_ = "STUB: not implemented"
+	return "", nil
 }
 
 // Reader wraps a Reader interface and minifies the stream.
 // Errors from the minifier are returned by the reader.
 func (m *M) Reader(mediatype string, r io.Reader) io.Reader {
-	pr, pw := io.Pipe()
-	go func() {
-		if err := m.Minify(mediatype, pw, r); err != nil {
-			pw.CloseWithError(err)
-		} else {
-			pw.Close()
-		}
-	}()
-	return pr
+	_ = "STUB: not implemented"
+	return *new(io.Reader)
 }
 
 // writer makes sure that errors from the minifier are passed down through Close (can be blocking).
@@ -283,34 +155,14 @@ type writer struct {
 }
 
 // Close must be called when writing has finished. It returns the error from the minifier.
-func (z *writer) Close() error {
-	if z.closed {
-		return nil
-	}
-	z.closed = true
-	err := z.WriteCloser.Close()
-	z.wg.Wait()
-	if z.err == nil {
-		return err
-	}
-	return z.err
-}
+func (z *writer) Close() error { _ = "STUB: not implemented"; return nil }
 
 // Writer wraps a Writer interface and minifies the stream.
 // Errors from the minifier are returned by Close on the writer.
 // The writer must be closed explicitly.
 func (m *M) Writer(mediatype string, w io.Writer) io.WriteCloser {
-	pr, pw := io.Pipe()
-	z := &writer{pw, sync.WaitGroup{}, false, nil}
-	z.wg.Add(1)
-	go func() {
-		defer z.wg.Done()
-		defer pr.Close()
-		if err := m.Minify(mediatype, w, pr); err != nil {
-			z.err = err
-		}
-	}()
-	return z
+	_ = "STUB: not implemented"
+	return *new(io.WriteCloser)
 }
 
 // responseWriter wraps an http.ResponseWriter and makes sure that errors from the minifier are passed down through Close (can be blocking).
@@ -325,75 +177,40 @@ type responseWriter struct {
 }
 
 // WriteHeader intercepts any header writes and removes the Content-Length header.
-func (w *responseWriter) WriteHeader(status int) {
-	w.ResponseWriter.Header().Del("Content-Length")
-	w.ResponseWriter.WriteHeader(status)
-}
+func (w *responseWriter) WriteHeader(status int) { _ = "STUB: not implemented"; return }
 
 // Write intercepts any writes to the response writer.
 // The first write will extract the Content-Type as the mediatype. Otherwise it falls back to the RequestURI extension.
 func (w *responseWriter) Write(b []byte) (int, error) {
-	if w.z == nil {
-		// first write
-		if mediatype := w.ResponseWriter.Header().Get("Content-Type"); mediatype != "" {
-			w.mediatype = mediatype
-		}
-		if _, params, minifier := w.m.Match(w.mediatype); minifier != nil {
-			pr, pw := io.Pipe()
-			z := &writer{pw, sync.WaitGroup{}, false, nil}
-			z.wg.Add(1)
-			go func() {
-				defer z.wg.Done()
-				defer pr.Close()
-				if err := minifier(w.m, w.ResponseWriter, pr, params); err != nil {
-					z.err = err
-				}
-			}()
-			w.z = z
-		} else {
-			w.z = w.ResponseWriter
-		}
-	}
-	return w.z.Write(b)
+	_ = "STUB: not implemented"
+
+	// first write
+	return 0, nil
 }
 
 // Close must be called when writing has finished. It returns the error from the minifier.
-func (w *responseWriter) Close() error {
-	if closer, ok := w.z.(interface{ Close() error }); ok {
-		return closer.Close()
-	}
-	return nil
-}
+func (w *responseWriter) Close() error { _ = "STUB: not implemented"; return nil }
 
 // ResponseWriter minifies any writes to the http.ResponseWriter.
 // http.ResponseWriter loses all functionality such as Pusher, Hijacker, Flusher, ...
 // Minification might be slower than just sending the original file! Caching is advised.
 func (m *M) ResponseWriter(w http.ResponseWriter, r *http.Request) *responseWriter {
-	mediatype := mime.TypeByExtension(path.Ext(r.RequestURI))
-	return &responseWriter{w, nil, m, mediatype}
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // Middleware provides a middleware function that minifies content on the fly by intercepting writes to http.ResponseWriter.
 // http.ResponseWriter loses all functionality such as Pusher, Hijacker, Flusher, ...
 // Minification might be slower than just sending the original file! Caching is advised.
 func (m *M) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mw := m.ResponseWriter(w, r)
-		next.ServeHTTP(mw, r)
-		mw.Close()
-	})
+	_ = "STUB: not implemented"
+	return *new(http.Handler)
 }
 
 // MiddlewareWithError provides a middleware function that minifies content on the fly by intercepting writes to http.ResponseWriter. The error function allows handling minification errors.
 // http.ResponseWriter loses all functionality such as Pusher, Hijacker, Flusher, ...
 // Minification might be slower than just sending the original file! Caching is advised.
 func (m *M) MiddlewareWithError(next http.Handler, errorFunc func(w http.ResponseWriter, r *http.Request, err error)) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mw := m.ResponseWriter(w, r)
-		next.ServeHTTP(mw, r)
-		if err := mw.Close(); err != nil {
-			errorFunc(w, r, err)
-			return
-		}
-	})
+	_ = "STUB: not implemented"
+	return *new(http.Handler)
 }

@@ -2,20 +2,18 @@ package main
 
 import (
 	"io/fs"
-	"os"
-	"path/filepath"
 )
 
-func NewFS() fs.FS {
-	return dirFS("")
-}
+func NewFS() fs.FS { _ = "STUB: not implemented"; return *new(fs.FS) }
 
 type dirFS string
 
 func (dir dirFS) Open(name string) (fs.File, error) {
-	return os.Open(filepath.Join(string(dir), name))
+	_ = "STUB: not implemented"
+	return *new(fs.File), nil
 }
 
 func (dir dirFS) Stat(name string) (fs.FileInfo, error) {
-	return os.Stat(filepath.Join(string(dir), name))
+	_ = "STUB: not implemented"
+	return *new(fs.FileInfo), nil
 }

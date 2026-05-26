@@ -44,31 +44,19 @@ func init() {
 }
 
 // CSS string minifier using all default minifiers
-func CSS(s string) (string, error) {
-	return Default.String("text/css", s)
-}
+func CSS(s string) (string, error) { _ = "STUB: not implemented"; return "", nil }
 
 // HTML string minifier using all default minifiers
-func HTML(s string) (string, error) {
-	return Default.String("text/html", s)
-}
+func HTML(s string) (string, error) { _ = "STUB: not implemented"; return "", nil }
 
 // SVG string minifier using all default minifiers
-func SVG(s string) (string, error) {
-	return Default.String("image/svg+xml", s)
-}
+func SVG(s string) (string, error) { _ = "STUB: not implemented"; return "", nil }
 
 // JS string minifier using all default minifiers
-func JS(s string) (string, error) {
-	return Default.String("application/javascript", s)
-}
+func JS(s string) (string, error) { _ = "STUB: not implemented"; return "", nil }
 
 // JSON string minifier using all default minifiers
-func JSON(s string) (string, error) {
-	return Default.String("application/json", s)
-}
+func JSON(s string) (string, error) { _ = "STUB: not implemented"; return "", nil }
 
 // XML string minifier using all default minifiers
-func XML(s string) (string, error) {
-	return Default.String("application/xml", s)
-}
+func XML(s string) (string, error) { _ = "STUB: not implemented"; return "", nil }

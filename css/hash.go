@@ -854,54 +854,17 @@ const (
 //}
 
 // String returns the text associated with the hash.
-func (i Hash) String() string {
-	return string(i.Bytes())
-}
+func (i Hash) String() string { _ = "STUB: not implemented"; return "" }
 
 // Bytes returns the text associated with the hash.
-func (i Hash) Bytes() []byte {
-	start := uint32(i >> 8)
-	n := uint32(i & 0xff)
-	if start+n > uint32(len(_Hash_text)) {
-		return []byte{}
-	}
-	return _Hash_text[start : start+n]
-}
+func (i Hash) Bytes() []byte { _ = "STUB: not implemented"; return nil }
 
 // ToHash returns a hash Hash for a given []byte. Hash is a uint32 that is associated with the text in []byte. It returns zero if no match found.
-func ToHash(s []byte) Hash {
-	if len(s) == 0 || len(s) > _Hash_maxLen {
-		return 0
-	}
-	//if 3 < len(s) {
-	//	return HashMap[string(s)]
-	//}
-	h := uint32(_Hash_hash0)
-	for i := 0; i < len(s); i++ {
-		h ^= uint32(s[i])
-		h *= 16777619
-	}
-	if i := _Hash_table[h&uint32(len(_Hash_table)-1)]; int(i&0xff) == len(s) {
-		t := _Hash_text[i>>8 : i>>8+i&0xff]
-		for i := 0; i < len(s); i++ {
-			if t[i] != s[i] {
-				goto NEXT
-			}
-		}
-		return i
-	}
-NEXT:
-	if i := _Hash_table[(h>>16)&uint32(len(_Hash_table)-1)]; int(i&0xff) == len(s) {
-		t := _Hash_text[i>>8 : i>>8+i&0xff]
-		for i := 0; i < len(s); i++ {
-			if t[i] != s[i] {
-				return 0
-			}
-		}
-		return i
-	}
-	return 0
-}
+func ToHash(s []byte) Hash { _ = "STUB: not implemented"; return *new(Hash) }
+
+//if 3 < len(s) {
+//	return HashMap[string(s)]
+//}
 
 const _Hash_hash0 = 0x9acb0442
 const _Hash_maxLen = 27
